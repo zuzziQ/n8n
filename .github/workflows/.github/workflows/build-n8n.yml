@@ -1,0 +1,44 @@
+name: Build n8n
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v3
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'pnpm'
+
+      - name: 📦 Install pnpm
+        run: npm install -g pnpm
+
+      - name: 📥 Install dependencies
+        run: pnpm install
+
+      - name: 🛠️ Build packages
+        run: pnpm build
+
+      # Optional: Skip building chat UI if memory is a concern
+      # - name: 🛠️ Build core only
+      #   run: pnpm --filter !@n8n/chat... build
+
+      - name: 📤 Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: n8n-build
+          path: |
+            packages/cli/dist
+            packages/cli/public
+            packages/cli/*.js
