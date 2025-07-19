@@ -1,0 +1,41 @@
+name: Build n8n
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'pnpm'
+
+      - name: 📦 Install pnpm
+        run: npm install -g pnpm
+
+      - name: 📥 Install dependencies
+        run: pnpm install
+
+      - name: 🛠️ Build (skip chat for memory safety)
+        run: pnpm --filter !@n8n/chat... build
+
+      - name: 📦 Upload compiled CLI
+        uses: actions/upload-artifact@v3
+        with:
+          name: n8n-cli-dist
+          path: |
+            packages/cli/dist
+            packages/cli/public
+            packages/cli/*.js
